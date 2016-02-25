@@ -23,7 +23,7 @@ import System.Directory
 data Performance =
      Performance Text -- ^ name
                  Text -- ^ programme uri
-                            deriving (Eq, Show)
+     deriving (Eq, Show)
 
 main :: IO ()
 main =
@@ -37,6 +37,7 @@ main =
        do T.putStrLn perfName
           download (bbc <> path ^. from packed) "tmp.flv"
           extractAudio "tmp.flv" (dest </> perfName ^. from packed <> ".mp4")
+          removeFile "tmp.flv"
   where medleyRoot = "http://www.bbc.co.uk/programmes/p02zrvzr"
         msrRoot = "http://www.bbc.co.uk/programmes/p02zr6z7"
         bbc = "http://www.bbc.co.uk"
