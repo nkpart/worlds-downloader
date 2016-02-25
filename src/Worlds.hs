@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Lib
-    ( someFunc
+{-# LANGUAGE NoMonomorphismRestriction #-}
+module Worlds
+    ( main
     ) where
 
 import Control.Lens hiding (children)
@@ -24,23 +25,24 @@ data Performance =
                  Text -- ^ programme uri
                             deriving (Eq, Show)
 
-someFunc :: IO ()
-someFunc =
+main :: IO ()
+main =
   do [dest] <- getArgs
      createDirectory dest
-     response <- get root
-     let perfs = recentPackages response
-
-     for_ perfs $ \(Performance perfName path) ->
+     medleys <- toListOf performances <$> get medleyRoot
+     msrs <- toListOf performances <$> get msrRoot
+     print medleys
+     print msrs
+     for_ (medleys <> msrs) $ \(Performance perfName path) ->
        do T.putStrLn perfName
           download (bbc <> path ^. from packed) "tmp.flv"
           extractAudio "tmp.flv" (dest </> perfName ^. from packed <> ".mp4")
-  where root = "http://www.bbc.co.uk/programmes/p02zrvzr"
+  where medleyRoot = "http://www.bbc.co.uk/programmes/p02zrvzr"
+        msrRoot = "http://www.bbc.co.uk/programmes/p02zr6z7"
         bbc = "http://www.bbc.co.uk"
 
-
-recentPackages :: Response ByteString -> [Performance]
-recentPackages = toListOf $ responseBody . to (decodeUtf8With lenientDecode) . html . links . to table . _Just
+performances :: Fold (Response ByteString) Performance
+performances = responseBody . to (decodeUtf8With lenientDecode) . html . links . to table . _Just
   where links = allAttributed (ix "data-linktrack" . only "programmeobjectlink=cliptitle")
 
 table :: Element -> Maybe Performance
