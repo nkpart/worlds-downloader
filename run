@@ -1,0 +1,1 @@
+cabal run worlds-downloader -- slurp --audio-place test1 --album-place albums
